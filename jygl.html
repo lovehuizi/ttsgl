@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <script src="https://unpkg.com/vue/dist/vue.js"></script>
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    <script src="./js/jquery.js"></script>
+    <script src="./js/axios.js"></script>
+    <link rel="stylesheet" href="./css/jygl.css">
+    <script src="https://unpkg.com/dayjs@1.8.21/dayjs.min.js"></script>
+</head>
+
+<body>
+    <div id="app">
+        <h2>借阅管理(模拟用户借书操作)</h2>
+        <el-input ref='input_user' placeholder="请输入读者姓名" v-model="user_name" style="margin-bottom: 15px;">
+            <template slot="prepend">读者姓名</template>
+        </el-input>
+        <el-input ref='input_book' placeholder="请输入图书名称" v-model="book_name" style="margin-bottom: 15px;">
+            <template slot="prepend">图书名称</template>
+        </el-input>
+
+        <div class="cz">
+            操作：
+            <el-radio v-model="radio" label="1">借书</el-radio>
+            <el-radio v-model="radio" label="2">还书</el-radio>
+        </div><br>
+
+        <div class="an">
+            <el-button type="primary" @click='qr'>确认</el-button>
+            <el-button type="danger" @click='cz'>重置</el-button>
+        </div>
+
+    </div>
+
+
+
+
+    <script>
+        new Vue({
+            el: '#app',
+            data() {
+                return {
+                    user_name: '',
+                    book_name: '',
+                    oldtime: 0,
+                    newtime: 0,
+                    price: 0, // 扣除金额
+                    radio: '1'
+                }
+            },
+            methods: {
+                qr() {
+                    // 确认操作
+                    if (this.user_name == '') {
+                        this.$refs.input_user.focus();
+
+                        this.$message({
+                            message: '请输入用户名',
+                            type: 'warning'
+                        });
+                        return;
+                    } else if (this.book_name == '') {
+                        this.$refs.input_book.focus();
+                        this.$message({
+                            message: '请输入书名',
+                            type: 'warning'
+                        });
+                    } else {
+                        if (this.radio == '1') {
+
+
+                            this.$confirm('确认要借取' + this.book_name + '吗?', '提示', {
+                                confirmButtonText: '确定',
+                                cancelButtonText: '取消',
+                                type: 'warning'
+                            }).then(() => {
+
+                                // 借书日期 还书日期
+                                this.oldtime = dayjs().valueOf(); // 当前时间
+                                this.newtime = dayjs().add(3, 'day').valueOf(); // 三天后时间
+
+                                var url = 'http://localhost:88/tsxt/php/js.php';
+                                axios.get(url, {
+                                    params: {
+                                        user: this.user_name,
+                                        book: this.book_name,
+                                        oldtime: this.oldtime,
+                                        newtime: this.newtime,
+                                        price: this.price,
+
+                                    }
+                                }).then(res => {
+                                    if (res == '此书已被借出') {
+                                        this.$message({
+                                            message: '此书已被借出',
+                                            type: 'warning'
+                                        });
+                                    } else if (res == '没有这本书，或用户名输入错误！') {
+                                        this.$message({
+                                            message: '没有这本书，或用户名输入错误！',
+                                            type: 'warning'
+                                        });
+
+                                    }else if(res == '您已欠费请及时充值！'){
+
+                                        this.$message({
+                                            message: '您已欠费请及时充值！',
+                                            type: 'warning'
+                                        });
+
+                                    } else {
+                                        // 返回结果
+                                        this.$message({
+                                            type: 'success',
+                                            message: '借书成功!'
+                                        });
+                                        this.user_name = '';
+                                        this.book_name = '';
+                                        this.radio = '1';
+
+
+
+
+                                    }
+                                })
+
+
+
+                            }).catch(() => {
+                                this.$message({
+                                    type: 'info',
+                                    message: '已取消借书'
+                                });
+                            });
+
+
+                        } else {
+
+
+                            this.$confirm('确认要归还' + this.book_name + '吗?', '提示', {
+                                confirmButtonText: '确定',
+                                cancelButtonText: '取消',
+                                type: 'warning'
+                            }).then(() => {
+
+                                var url = 'http://localhost:88/tsxt/php/hs.php';
+                                axios.get(url, {
+                                    params: {
+                                        user: this.user_name,
+                                        book: this.book_name,
+                                    }
+                                }).then(res => {
+                                    if (res == '此书未被借出') {
+                                        this.$message({
+                                            message: '此书未被借出',
+                                            type: 'warning'
+                                        });
+                                    } else if (res == '没有这本书，或用户名输入错误！') {
+                                        this.$message({
+                                            message: '没有这本书，或用户名输入错误！',
+                                            type: 'warning'
+                                        });
+                                    } else {
+                                        // 返回结果
+                                        this.$message({
+                                            type: 'success',
+                                            message: '还书成功!'
+                                        });
+                                        this.user_name = '';
+                                        this.book_name = '';
+                                        this.radio = '1';
+                                    }
+                                })
+
+
+                            }).catch(() => {
+                                this.$message({
+                                    type: 'info',
+                                    message: '已取消归还'
+                                });
+                            });
+                        }
+                    }
+
+                },
+                cz() {
+                    this.user_name = '';
+                    this.book_name = '';
+                    this.radio = '1';
+                }
+            },
+
+
+
+
+
+
+        })
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+  <script src="https://unpkg.com/vue/dist/vue.js"></script>
+  <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+  <script src="./js/jquery.js"></script>
+  <script src="./js/axios.js"></script>
+  <link rel="stylesheet" href="./css/yhgl.css">
+  <script src="https://unpkg.com/dayjs@1.8.21/dayjs.min.js"></script>
+</head>
+
+<body>
+  <div id="app">
+    <el-container>
+      <el-header>
+        <el-row>
+          <el-col :span="8" :offset='8' style="margin-top: 20px;">
+            <div class="grid-content ">
+              <div style="margin-left: 200px;">
+                <input v-model="search" @change='booksee_data' placeholder="请输入搜索内容" class="searchbook"></input>
+                <el-button type="primary" size="medium" @click="searchbook">
+                  搜索
+                </el-button>
+              </div>
+            </div>
+          </el-col>
+        </el-row>
+      </el-header>
+      <el-main style="margin-top: 15px;">
+        <el-row>
+          <el-col :span="3" :offset='20'>
+            <!-- 左侧抽屉添加图书 -->
+            <div class="grid-conten">
+              <el-button @click="book_add" type="primary" style="margin-left: 58px;">添加用户</el-button>
+              <el-drawer ref='close_mask' title="我是标题" :visible.sync="drawer" :with-header="false" direction="ltr"
+                size="45%" close-on-press-escape @closed='chang_title'>
+                <el-container>
+                  <el-header>
+                    <h2 style="text-align: center;margin-top: 10px;">{{cz_book}}</h2>
+                  </el-header>
+                  <el-main>
+                    <el-row>
+                      <el-col :span="20" :offset='2'>
+                        <div class="grid-content" style="height: 800px;">
+                          <el-input placeholder="请输入用户名" v-model="users_name" style="margin-bottom: 15px;">
+                            <template slot="prepend">用户名</template>
+                          </el-input>
+                          <el-input placeholder="请输入密码" v-model="users_pwd" style="margin-bottom: 15px;">
+                            <template slot="prepend">密码</template>
+                          </el-input>
+                          <el-input placeholder="请输入身份证号码" v-model="users_code" style="margin-bottom: 15px;"
+                            autocomplete="on">
+                            <template slot="prepend">身份证</template>
+                          </el-input>
+                          <el-input placeholder="请输入电话号码" v-model="users_tel" style="margin-bottom: 15px;"
+                            autocomplete="on">
+                            <template slot="prepend">电话</template>
+                          </el-input>
+                          <el-input placeholder="请输入充值金额" v-model="users_price" style="margin-bottom: 15px;">
+                            <template slot="prepend">充值金额</template>
+                            <template slot="append">元</template>
+                          </el-input>
+                          <p style="margin-bottom: 8px;">家庭住址：</p>
+                          <el-input type="textarea" placeholder="请输入家庭住址" v-model="textarea" maxlength="30"
+                            show-word-limit :rows="10">
+                          </el-input>
+
+                          <el-row>
+                            <el-col :span="8" :offset="9">
+                              <div class="grid-content" style="margin-top: 35px;">
+                                <el-button :type="book_btn" @click='data_up'>{{book_tx}}</el-button>
+                                <el-button type="danger" style="margin-left: 30px;" @click="clear">重置</el-button>
+                              </div>
+                            </el-col>
+                          </el-row>
+                        </div>
+                      </el-col>
+                    </el-row>
+                  </el-main>
+                </el-container>
+              </el-drawer>
+            </div>
+          </el-col>
+        </el-row>
+        <el-row>
+          <el-col :span="18" :offset="4">
+            <div class="grid-content bg-purple-dark">
+
+              <!-- 表格 -->
+              <!-- :data="list.slice((currpage - 1) * pagesize, currpage * pagesize)"
+                  :data="tableData.filter(data => !search || data.name.toLowerCase().includes(search.toLowerCase()))"  -->
+              <el-table :data="tableData.slice((currpage - 1) * pagesize, currpage * pagesize)" style="width: 100%"
+                border height=580 slot="empty" :header-cell-style="{background:'#F5F4F7'}">
+                <el-table-column label="用户名" width="200" align="center">
+                  <template slot-scope="scope">
+                    <span style="margin-left: 10px">{{ scope.row.name }}</span>
+                  </template>
+                </el-table-column>
+                <el-table-column label="密码" width="200" align="center" class-name='color'>
+                  <template slot-scope="scope">
+                    <span style="margin-left: 10px;">{{ scope.row.pwd }}</span>
+                  </template>
+                </el-table-column>
+                <el-table-column label="电话" width="200" align="center">
+                  <template slot-scope="scope">
+                    <span style="margin-left: 10px">{{ scope.row.tel }}</span>
+                  </template>
+                </el-table-column>
+                <el-table-column label="身份证" width="314" align="center">
+                  <template slot-scope="scope">
+                    <span style="margin-left: 10px">{{ scope.row.code }}</span>
+                  </template>
+                </el-table-column>
+                <el-table-column label="住址" width="314" align="center">
+                  <template slot-scope="scope">
+                    <span style="margin-left: 10px">{{ scope.row.home }}</span>
+                  </template>
+                </el-table-column>
+                <el-table-column label="账号余额" width="100" align="center" :class-name='state_color'>
+                  <template slot-scope="scope">
+                    <span style="margin-left: 10px">{{ scope.row.price }}</span>
+                  </template>
+                </el-table-column>
+
+
+                <el-table-column label="操作" align="center" width="80">
+                  <template slot-scope="scope">
+                    <el-button size="mini" type="primary" @click="handleEdit(scope.$index, scope.row)">详情</el-button>
+                    <!-- 上侧抽屉 -->
+                    <el-drawer :visible.sync="drawer1" direction="ttb" size="100%" :show-close="false">
+                      <!-- 用户信息 -->
+                      <el-container>
+                        <el-header height="400px" style="margin-top: -40px;">
+                          <el-row>
+                            <el-col :span="16" :offset="4">
+                              <div class="grid-content bg-purple" style="height: 400px;">
+                                <!-- 用户信息模块 -->
+                                <div id="yhxx_box" style="width: 100%;height: 100%;background-color: #D3DCE6;">
+                                  <div class="yhxx_top">
+                                    <h3>用户信息</h3>
+                                    <p>用户姓名: {{users_name}} </p>
+                                    <p>用户电话: {{users_tel}}</p>
+                                    <p>用户家庭住址：{{textarea}}</p>
+                                    <p>账户余额：<span class="yyje_color">{{users_price}} 元</span></p>
+                                  </div>
+                                  <div class="yhxx_bottom">
+                                    <el-button type="primary" @click="dialogVisible1 = true" :modal='mask'>修改账户
+                                    </el-button>
+
+                                    <el-dialog title="修改账户" :visible.sync="dialogVisible1" width="30%"
+                                      :before-close="handleClose" :modal='mask' top="8vh">
+                                      <el-input placeholder="请输入用户名" v-model="users_name" style="margin-bottom: 15px;">
+                                        <template slot="prepend">用户名</template>
+                                      </el-input>
+                                      <el-input placeholder="请输入用户电话" v-model="users_tel" style="margin-bottom: 15px;">
+                                        <template slot="prepend">用户电话</template>
+                                      </el-input>
+                                      <el-input placeholder="请输入用户地址" v-model="textarea" style="margin-bottom: 15px;">
+                                        <template slot="prepend">用户地址</template>
+                                      </el-input>
+                                      <span slot="footer" class="dialog-footer">
+                                        <el-button @click="qxcz">取 消</el-button>
+                                        <el-button type="primary" @click="qdcz1">确 定</el-button>
+                                      </span>
+                                    </el-dialog>
+
+                                    <el-button type="success" @click="dialogVisible2 = true" :modal='mask'>账户充值
+                                    </el-button>
+                                    <el-dialog title="账户充值" :visible.sync="dialogVisible2" width="30%"
+                                      :before-close="handleClose" :modal='mask' top="8vh">
+                                      <el-input placeholder="请输入充值金额" v-model="users_price"
+                                        style="margin-bottom: 15px;">
+                                        <template slot="prepend">请输入充值金额</template>
+                                      </el-input>
+                                      <span slot="footer" class="dialog-footer">
+                                        <el-button @click="qxcz">取 消</el-button>
+                                        <el-button type="primary" @click="qdcz2">确 定</el-button>
+                                      </span>
+                                    </el-dialog>
+
+                                    <el-button type="warning" @click="dialogVisible3 = true" :modal='mask'>修改密码
+                                    </el-button>
+                                    <el-dialog title="修改密码" :visible.sync="dialogVisible3" width="30%"
+                                      :before-close="handleClose" :modal='mask' top="8vh">
+                                      <el-input placeholder="新密码" v-model="newusers_pwd" style="margin-bottom: 15px;">
+                                        <template slot="prepend">请输入新密码</template>
+                                      </el-input>
+                                      <span slot="footer" class="dialog-footer">
+                                        <el-button @click="qxcz">取 消</el-button>
+                                        <el-button type="primary" @click="qdcz3">确 定</el-button>
+                                      </span>
+                                    </el-dialog>
+
+                                    <el-button type="danger" @click="dialogVisible4 = true" :modal='mask'>删除账户
+                                    </el-button>
+                                    <el-dialog title="删除账户" :visible.sync="dialogVisible4" width="30%"
+                                      :before-close="handleClose" :modal='mask' top="8vh">
+                                      <p>你确定要删除此账户吗？</p>
+                                      <span slot="footer" class="dialog-footer">
+                                        <el-button @click="qxcz">取 消</el-button>
+                                        <el-button type="primary" @click="qdcz4">确 定</el-button>
+                                      </span>
+                                    </el-dialog>
+                                  </div>
+                                </div>
+                              </div>
+                            </el-col>
+                          </el-row>
+                        </el-header>
+                        <el-main height="400px" style="color: #333;">
+                          <el-row>
+                            <el-col :span="16" :offset="4">
+                              <div class="grid-content " style="height: 300px;">
+                                <h2>用户借阅信息</h2>
+
+                                <!-- 用户借阅信息 -->
+                                <el-table :data="tableDatas.slice((currpage - 1) * pagesize, currpage * pagesize)"
+                                  style="width: 100%" border>
+                                  <el-table-column label="图书名" width="" align="center">
+                                    <template slot-scope="scope">
+                                      <span style="margin-left: 10px">{{ scope.row.name }}</span>
+                                    </template>
+                                  </el-table-column>
+                                  <el-table-column label="借书时间" width="400" align="center" class-name='color'>
+                                    <template slot-scope="scope">
+                                      <span style="margin-left: 10px;">{{ scope.row.start }}</span>
+                                    </template>
+                                  </el-table-column>
+                                  <el-table-column label="应还时间" width="400" align="center">
+                                    <template slot-scope="scope">
+                                      <span style="margin-left: 10px">{{ scope.row.end }}</span>
+                                    </template>
+                                  </el-table-column>
+                                  <el-table-column label="已扣除金额" width="" align="center">
+                                    <template slot-scope="scope">
+                                      <span style="margin-left: 10px">{{ scope.row.outprice }}</span>
+                                    </template>
+                                  </el-table-column>
+
+
+
+                                  <el-table-column label="续借" align="center" width="">
+                                    <template slot-scope="scope">
+                                      <el-button size="mini" type="success"
+                                        @click="handleEdit1(scope.$index, scope.row)">续借</el-button>
+                                    </template>
+                                  </el-table-column>
+                                </el-table>
+
+                                <!-- 用户借阅分页 -->
+                                <div>
+                                  <el-pagination @size-change="handleSizeChange" @current-change="handleCurrentChange"
+                                    :current-page="currpage" :page-sizes="[1, 3, 5, 8,10]" :page-size="pagesize"
+                                    layout="total, sizes, prev, pager, next, jumper" :total="total" background>
+                                  </el-pagination>
+                                </div>
+
+                              </div>
+                            </el-col>
+                          </el-row>
+                        </el-main>
+                      </el-container>
+                    </el-drawer>
+
+
+
+                  </template>
+                </el-table-column>
+              </el-table>
+            </div>
+          </el-col>
+        </el-row>
+        <el-row>
+          <el-col :span="8" :offset='8' style="margin-top: 20px;">
+            <!-- 分页 -->
+            <div style="margin-left: 130px;">
+              <el-pagination @size-change="handleSizeChange" @current-change="handleCurrentChange"
+                :current-page="currpage" :page-sizes="[1, 3, 5, 8,10]" :page-size="pagesize"
+                layout="total, sizes, prev, pager, next, jumper" :total="total" background>
+              </el-pagination>
+            </div>
+          </el-col>
+        </el-row>
+
+      </el-main>
+    </el-container>
+  </div>
+
+  <script>
+    new Vue({
+      el: '#app',
+      data() {
+        return {
+          tableData: [],
+          tableDatas: [],
+          currpage: 1, // 默认当前页
+          pagesize: 10, // 默认每页条数
+          total: 10, //  共有几条数据
+          search: '',
+          drawer: false, // 弹框
+          drawer1: false,
+          cz_book: '添加用户',
+          users_name: '', // 表单信息
+          users_pwd: '', // 表单信息
+          users_tel: '', // 表单信息
+          users_price: '', // 表单信息
+          users_code: '', // 表单信息
+          textarea: '',
+          book_tx: '添加',
+          book_btn: 'primary',
+          state_color: 'zt',
+          dialogVisible1: false,
+          dialogVisible2: false,
+          dialogVisible3: false,
+          dialogVisible4: false,
+          mask: false,
+          newusers_pwd: '',
+          oldtime: 0,
+          newtime: 0,
+          price: 0,
+        }
+      },
+      methods: {
+        qxcz() {
+          this.$message('已取消！');
+          this.dialogVisible1 = false;
+          this.dialogVisible2 = false;
+          this.dialogVisible3 = false;
+          this.dialogVisible4 = false;
+        },
+        qdcz1() {
+          var url = 'http://localhost:88/tsxt/php/xgzh.php';
+          axios.get(url, {
+            params: {
+              users_name: this.users_name,
+              users_tel: this.users_tel,
+              textarea: this.textarea,
+              users_code: this.users_code
+            }
+          }).then(res => {
+            this.getdata();
+            this.$message({
+              message: '账户修改成功！',
+              type: 'success'
+            })
+
+
+          });
+
+          this.dialogVisible1 = false;
+
+        },
+        qdcz2() {
+
+          var url = 'http://localhost:88/tsxt/php/yhcz.php';
+          axios.get(url, {
+            params: {
+              users_price: this.users_price,
+              users_code: this.users_code
+            }
+          }).then(res => {
+            this.getdata();
+            this.$message({
+              message: '账户充值成功！',
+              type: 'success'
+            });
+
+            this.users_price = res
+
+          });
+
+
+          this.dialogVisible2 = false;
+
+        },
+        qdcz3() {
+          var url = 'http://localhost:88/tsxt/php/xgmm.php';
+          axios.get(url, {
+            params: {
+              users_pwd: this.newusers_pwd,
+              users_code: this.users_code
+            }
+          }).then(res => {
+            this.getdata();
+            this.$message({
+              message: '密码重置成功！',
+              type: 'success'
+            });
+            this.users_pwd = res
+
+          });
+          this.dialogVisible3 = false;
+        },
+        qdcz4() {
+          var url = 'http://localhost:88/tsxt/php/sczh.php';
+          axios.get(url, {
+            params: {
+              users_code: this.users_code
+            }
+          }).then(res => {
+            this.getdata();
+            this.$message({
+              message: '账户已删除！',
+              type: 'success'
+            });
+
+          });
+          this.dialogVisible4 = false;
+          this.drawer1 = false;
+        },
+        handleClose(done) {
+          this.$confirm('确认关闭？')
+            .then(_ => {
+              done();
+            })
+            .catch(_ => {});
+        },
+        handleEdit1(index, row) { 
+
+          var urrl = 'http://localhost:88/tsxt/php/xr.php?name=' + row.name + '&user=' + row.user + '&outprice=' +
+            row.outprice + '';
+          axios.get(urrl).then(res => {
+            console.log(res);
+            if (res == '修改成功') {
+       row.outprice= parseInt(row.outprice) + 1
+
+            }
+
+          })
+          console.log(index, row);
+          var xjtime = dayjs(row.end).add(3, 'day').format('YYYY-MM-DD');
+          console.log(this.users_name, row.name, this.users_price - 1, dayjs(row.end).add(3, 'day').format(
+            'YYYY-MM-DD'));
+          var url = 'http://localhost:88/tsxt/php/xj.php';
+          axios.get(url, {
+            params: {
+              book: row.name,
+              time: dayjs(dayjs(row.end).add(3, 'day').format('YYYY-MM-DD')).valueOf(),
+              name: this.users_name,
+              price: this.users_price - 1
+            }
+          })
+          row.end = xjtime;
+          this.users_price = this.users_price - 1;
+        },
+        handleEdit(index, row) {
+          console.log(index, row);
+          this.drawer1 = true;
+          this.cz_book = '修改用户';
+          this.book_tx = '修改'
+          this.book_btn = 'success';
+
+          this.users_name = row.name;
+          this.users_pwd = row.pwd;
+          this.users_tel = row.tel;
+          this.users_price = row.price;
+          this.users_code = row.code;
+          this.textarea = row.home;
+
+
+          // 用户借阅信息
+
+          var url = 'http://localhost:88/tsxt/php/yhjy.php?name=' + row.name + '';
+          axios.get(url).then(res => {
+            console.log(res);
+            this.total = res.length;
+            this.tableDatas = res;
+            for (var i in this.tableDatas) {
+              let old = Number(this.tableDatas[i].start);
+              let end = Number(this.tableDatas[i].end);
+              this.tableDatas[i].start = dayjs(old).format('YYYY-MM-DD');
+              this.tableDatas[i].end = dayjs(end).format('YYYY-MM-DD');
+
+              // console.log(dayjs().isBefore(dayjs(end))+'免费');    
+
+              // console.log((dayjs(dayjs('2021-02-15')-dayjs(end)).date()-1)*3-(this.tableDatas[i].outprice)); // 收取费用
+
+              // if ((dayjs(dayjs() - dayjs(end)).date() - 1) * 3 - (this.tableDatas[i].outprice) <=
+              //   0) {
+              //     this.tableDatas[i].outprice = 0;
+              // } else {
+              //   this.tableDatas[i].outprice = (dayjs(dayjs() - dayjs(end)).date() - 1) * 3;
+
+              // }
+
+
+              if (dayjs().isBefore(dayjs(end))) {
+                console.log('免费看书');
+              } else {
+
+                var price = (dayjs(dayjs() - dayjs(end)).date() - 1) * 3 - (this.tableDatas[i].outprice);
+                var url = 'http://localhost:88/tsxt/php/kf.php?name=' + this.tableDatas[i].name + '&price=' +
+                  this.tableDatas[i].outprice + '';
+                axios.get(url).then(res => {
+
+                })
+
+
+              }
+            }
+          })
+
+
+        },
+        book_add() {
+          this.book_tx = '添加';
+          this.drawer = true;
+          this.book_btn = 'primary';
+          this.users_name = '';
+          this.users_pwd = '';
+          this.users_tel = '';
+          this.users_price = '';
+          this.users_code = '';
+          this.textarea = '';
+
+        },
+        data_up() { // 添加数据
+          console.log(this.users_name) // 通过书名去后台查询 没有就添加 有就 更新数据
+
+          if (this.users_name == '') {
+            this.$message({
+              message: '请输入用户名称',
+              type: 'warning'
+            });
+            return false;
+          }
+          if (this.users_pwd == '') {
+            this.$message({
+              message: '请输入用户密码',
+              type: 'warning'
+            });
+            return false;
+
+          }
+
+          if (this.users_code == '') {
+            this.$message({
+              message: '请输入身份证号码',
+              type: 'warning'
+            });
+            return false;
+
+          }
+          if (this.users_tel == '') {
+            this.$message({
+              message: '请输入电话号码',
+              type: 'warning'
+            });
+            return false;
+
+          }
+          if (this.users_price == '') {
+            this.$message({
+              message: '请输入充值金额',
+              type: 'warning'
+            });
+            return false;
+
+          }
+
+          if (this.textarea == '') {
+            this.$message({
+              message: '请输入家庭住址',
+              type: 'warning'
+            });
+            return false;
+
+          }
+          var url = 'http://localhost:88/tsxt/php/yhgl_add.php';
+          axios.get(url, {
+            params: {
+              name: this.users_name,
+              pwd: this.users_pwd,
+              tel: this.users_tel,
+              code: this.users_code,
+              home: this.textarea,
+              price: this.users_price
+            }
+          }).then(res => {
+            console.log(res);
+            if (res == '添加成功') {
+              this.getdata();
+              this.$notify({
+                title: '成功',
+                message: '数据添加成功！',
+                type: 'success'
+              });
+              this.$refs.close_mask.closeDrawer();
+            } else {
+              this.getdata();
+              this.$notify({
+                title: '成功',
+                message: '数据修改成功！',
+                type: 'success'
+              });
+              this.$refs.close_mask.closeDrawer();
+            }
+          })
+
+
+
+          this.users_name = '';
+          this.users_pwd = '';
+          this.users_tel = '';
+          this.users_price = '';
+          this.users_code = '';
+          this.textarea = '';
+
+
+        },
+        chang_title() {
+          this.cz_book = '添加用户'
+        },
+        handleDelete(index, row) { // 删除数据 
+          this.$confirm(`是否删除${row.name}`, '提示', {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning'
+          }).then(() => {
+            console.log(index, row);
+            // 向后台发送请求删除此数据
+            var url = "http://localhost:88/tsxt/php/del.php";
+            axios.get(url, {
+              params: {
+                name: row.name
+              }
+            }).then(res => {
+              console.log(res);
+              if (res == '删除成功') {
+                this.getdata();
+              }
+
+            })
+            this.$message({
+              type: 'success',
+              message: '删除成功!'
+            });
+          }).catch(() => {
+            this.$message({
+              type: 'info',
+              message: '已取消删除'
+            });
+          });
+
+        },
+        handleSizeChange(val) { // 每页条数 
+          console.log(`每页 ${val} 条`);
+          this.pagesize = val;
+        },
+        handleCurrentChange(val) { //  当前页
+          console.log(`当前页: ${val}`);
+          this.currpage = val;
+        },
+        searchbook() { // 查询后台数据  没有输入查询内容就显示全部数据 输入了就查询 没查到就返回一个空数组
+          // console.log(this.search);
+          if (this.search != '') {
+            this.tableData = this.tableData.filter(data => !this.search || data.name.toLowerCase().includes(this
+              .search.toLowerCase()))
+          }
+
+
+        },
+        booksee_data() {
+          if (this.search == '') {
+            this.getdata();
+          }
+
+        },
+        clear() { // 清空表单信息
+          this.users_name = '';
+          this.users_pwd = '';
+          this.users_tel = '';
+          this.users_price = '';
+          this.users_code = '';
+          this.textarea = '';
+          this.$notify({
+            title: '成功',
+            message: '重置成功！',
+            type: 'success'
+          });
+          // this.$refs.close_mask.closeDrawer();
+        },
+        getdata() {
+          var url = 'http://localhost:88/tsxt/php/yhgl.php';
+          axios.get(url).then(res => {
+            this.total = res.length;
+            this.tableData = res;
+          })
+        },
+
+
+
+      },
+      mounted() {
+        this.getdata();
+      },
+
+
+
+    })
+  </script>
+  </div>
+</body>
+
+</html>

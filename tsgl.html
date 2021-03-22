@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+  <script src="https://unpkg.com/vue/dist/vue.js"></script>
+  <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+  <script src="./js/jquery.js"></script>
+  <script src="./js/axios.js"></script>
+  <link rel="stylesheet" href="./css/tsgl.css">
+</head>
+<style>
+
+</style>
+
+<body>
+  <div id="app">
+    <el-container>
+      <el-header>
+        <el-row>
+          <el-col :span="8" :offset='8' style="margin-top: 20px;">
+            <div class="grid-content ">
+              <div style="margin-left: 200px;">
+                <input v-model="search" @change='booksee_data' placeholder="请输入图书名进行查询" class="searchbook"></input>
+                <el-button type="primary" size="medium" @click="searchbook">
+                  搜索
+                </el-button>
+              </div>
+            </div>
+          </el-col>
+        </el-row>
+      </el-header>
+      <el-main style="margin-top: 15px;">
+        <el-row>
+          <el-col :span="1" :offset='22'>
+            <!-- 左侧抽屉添加图书 -->
+            <div class="grid-conten">
+              <el-button @click="book_add" type="primary" style="margin-left: 10px;">添加图书</el-button>
+              <el-drawer ref='close_mask' title="我是标题" :visible.sync="drawer" :with-header="false" direction="ltr"
+                size="45%" close-on-press-escape @closed='chang_title'>
+                <el-container>
+                  <el-header>
+                    <h2 style="text-align: center;margin-top: 10px;">{{cz_book}}</h2>
+                  </el-header>
+                  <el-main>
+                    <el-row>
+                      <el-col :span="20" :offset='2'>
+                        <div class="grid-content" style="height: 800px;">
+                          <el-input placeholder="请输入图书名" v-model="book_name" style="margin-bottom: 15px;">
+                            <template slot="prepend">图书名</template>
+                          </el-input>
+                          <el-input placeholder="请输入作者" v-model="book_user" style="margin-bottom: 15px;">
+                            <template slot="prepend">作者</template>
+                          </el-input>
+                          <el-input placeholder="请输入价格" v-model="book_price" style="margin-bottom: 15px;">
+                            <template slot="prepend">价格</template>
+                            <template slot="append">元</template>
+                          </el-input>
+                          <el-input placeholder="请输入状态" v-model="book_state" style="margin-bottom: 15px;"
+                          autocomplete ="on">
+                            <template slot="prepend">状态</template>
+                          </el-input>
+                          <p style="margin-bottom: 8px;">作品简介：</p>
+                          <el-input type="textarea" placeholder="请输入内容" v-model="textarea" maxlength="30"
+                            show-word-limit :rows="10">
+                          </el-input>
+                          <el-row>
+                            <el-col :span="8" :offset="9">
+                              <div class="grid-content" style="margin-top: 35px;">
+                                <el-button :type="book_btn" @click='data_up'>{{book_tx}}</el-button>
+                                <el-button type="danger" style="margin-left: 30px;" @click="clear">重置</el-button>
+                              </div>
+                            </el-col>
+                          </el-row>
+                        </div>
+                      </el-col>
+                    </el-row>
+                  </el-main>
+                </el-container>
+              </el-drawer>
+            </div>
+          </el-col>
+        </el-row>
+        <el-row>
+          <el-col :span="24">
+            <div class="grid-content bg-purple-dark">
+
+              <!-- 表格 -->
+              <!-- :data="list.slice((currpage - 1) * pagesize, currpage * pagesize)"
+              :data="tableData.filter(data => !search || data.name.toLowerCase().includes(search.toLowerCase()))"  -->
+              <el-table :data="tableData.slice((currpage - 1) * pagesize, currpage * pagesize)" style="width: 100%"
+                border height=580 slot="empty" :header-cell-style="{background:'#F5F4F7'}">
+                <el-table-column label="图书号" width="180" align="center">
+                  <template slot-scope="scope">
+                    <span style="margin-left: 10px">{{ scope.row.id }}</span>
+                  </template>
+                </el-table-column>
+                <el-table-column label="图书名" width="649" align="center" class-name='color'>
+                  <template slot-scope="scope">
+                    <span style="margin-left: 10px;">{{ scope.row.name }}</span>
+                  </template>
+                </el-table-column>
+                <el-table-column label="作者" width="649" align="center">
+                  <template slot-scope="scope">
+                    <span style="margin-left: 10px">{{ scope.row.user }}</span>
+                  </template>
+                </el-table-column>
+                <el-table-column label="价格" width="100" align="center">
+                  <template slot-scope="scope">
+                    <span style="margin-left: 10px">{{ scope.row.price }}</span>
+                  </template>
+                </el-table-column>
+                <el-table-column label="状态" width="100" align="center" :class-name='state_color'>
+                  <template slot-scope="scope">
+                    <span style="margin-left: 10px">{{ scope.row.state }}</span>
+                  </template>
+                </el-table-column>
+
+
+                <el-table-column label="操作" align="center" width="200">
+                  <template slot-scope="scope">
+                    <el-button size="mini" type="success" @click="handleEdit(scope.$index, scope.row)">修改</el-button>
+                    <el-button size="mini" type="danger" @click="handleDelete(scope.$index, scope.row)">删除</el-button>
+                  </template>
+                </el-table-column>
+              </el-table>
+            </div>
+          </el-col>
+        </el-row>
+        <el-row>
+          <el-col :span="8" :offset='9' style="margin-top: 20px;">
+            <!-- 分页 -->
+            <div>
+              <el-pagination @size-change="handleSizeChange" @current-change="handleCurrentChange"
+                :current-page="currpage" :page-sizes="[1, 3, 5, 8,10]" :page-size="pagesize"
+                layout="total, sizes, prev, pager, next, jumper" :total="total" background>
+              </el-pagination>
+            </div>
+          </el-col>
+        </el-row>
+
+      </el-main>
+    </el-container>
+  </div>
+
+  <script>
+    new Vue({
+      el: '#app',
+      data() {
+        return {
+          tableData: [],
+          currpage: 1, // 默认当前页
+          pagesize: 10, // 默认每页条数
+          total: 10, //  共有几条数据
+          search: '',
+          drawer: false, // 弹框
+          cz_book: '添加图书',
+          book_name: '', // 表单信息
+          book_user: '', // 表单信息
+          book_state: '', // 表单信息
+          book_price: '', // 表单信息
+          textarea: '',
+          book_tx: '添加',
+          book_btn: 'primary',
+          state_color: 'zt'
+        }
+      },
+      methods: {
+        handleEdit(index, row) {
+          console.log(index, row);
+          this.drawer = true;
+          this.cz_book = '修改图书';
+          this.book_tx = '修改'
+          this.book_btn = 'success';
+
+          this.book_name = row.name;
+          this.book_user = row.user;
+          this.book_state = row.state;
+          this.book_price = row.price;
+          this.textarea = row.say;
+
+
+
+        },
+        book_add() {
+          this.book_tx = '添加';
+          this.drawer = true;
+          this.book_btn = 'primary';
+          this.book_name = '';
+          this.book_user = '';
+          this.book_state = '';
+          this.book_price = '';
+          this.textarea = '';
+        },
+        data_up() { // 添加数据
+          console.log(this.book_name) // 通过书名去后台查询 没有就添加 有就 更新数据
+
+          if (this.book_name == '') {
+            this.$message({
+              message: '请输入图书名称',
+              type: 'warning'
+            });
+            return false;
+          }
+          if (this.book_user == '') {
+            this.$message({
+              message: '请输入图书作者名称',
+              type: 'warning'
+            });
+            return false;
+
+          }
+
+          if (this.book_state == '') {
+            this.$message({
+              message: '请输入图书状态',
+              type: 'warning'
+            });
+            return false;
+
+          }
+
+          if (this.textarea == '') {
+            this.$message({
+              message: '请输入图书描述',
+              type: 'warning'
+            });
+            return false;
+
+          }
+          var url = 'http://localhost:88/tsxt/php/updata.php';
+          axios.get(url, {
+            params: {
+              name: this.book_name,
+              user: this.book_user,
+              state: this.book_state,
+              price: this.book_price,
+              textarea: this.textarea
+            }
+          }).then(res => {
+            console.log(res);
+            if (res == '添加成功') {
+              this.getdata();
+              this.$notify({
+                title: '成功',
+                message: '数据添加成功！',
+                type: 'success'
+              });
+              this.$refs.close_mask.closeDrawer();
+            } else {
+              this.getdata();
+              this.$notify({
+                title: '成功',
+                message: '数据修改成功！',
+                type: 'success'
+              });
+              this.$refs.close_mask.closeDrawer();
+            }
+          })
+
+
+
+          this.book_name = '';
+          this.book_user = '';
+          this.book_state = '';
+          this.book_price = '';
+          this.textarea = '';
+
+
+        },
+        chang_title() {
+          this.cz_book = '添加图书'
+        },
+        handleDelete(index, row) { // 删除数据 
+          this.$confirm(`是否删除${row.name}`, '提示', {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning'
+          }).then(() => {
+            console.log(index, row);
+            // 向后台发送请求删除此数据
+            var url = "http://localhost:88/tsxt/php/del.php";
+            axios.get(url, {
+              params: {
+                name: row.name
+              }
+            }).then(res => {
+              console.log(res);
+              if (res == '删除成功') {
+                this.getdata();
+              }
+
+            })
+            this.$message({
+              type: 'success',
+              message: '删除成功!',
+              showClose: true,
+            });
+          }).catch(() => {
+            this.$message({
+              type: 'info',
+              message: '已取消删除',
+              showClose: true,
+            });
+          });
+
+        },
+        handleSizeChange(val) { // 每页条数 
+          console.log(`每页 ${val} 条`);
+          this.pagesize = val;
+        },
+        handleCurrentChange(val) { //  当前页
+          console.log(`当前页: ${val}`);
+          this.currpage = val;
+        },
+        searchbook() { // 查询后台数据  没有输入查询内容就显示全部数据 输入了就查询 没查到就返回一个空数组
+          // console.log(this.search);
+          if (this.search != '') {
+            this.tableData = this.tableData.filter(data => !this.search || data.name.toLowerCase().includes(this
+              .search.toLowerCase()))
+          }
+
+
+        },
+        booksee_data() {
+          if (this.search == '') {
+            this.getdata();
+          }
+        },
+        clear() { // 清空表单信息
+          this.book_name = '';
+          this.book_user = '';
+          this.book_state = '';
+          this.book_price = '';
+          this.textarea = '';
+          this.$notify({
+            title: '成功',
+            message: '重置成功！',
+            type: 'success'
+          });
+          // this.$refs.close_mask.closeDrawer();
+        },
+        getdata() {
+          var url = 'http://localhost:88/tsxt/php/tsgl.php';
+          axios.get(url).then(res => {
+            this.total = res.length;
+            this.tableData = res;
+          })
+        },
+
+
+
+      },
+      mounted() {
+        this.getdata();
+      },
+
+
+
+    })
+  </script>
+  </div>
+</body>
+
+</html>

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://unpkg.com/dayjs@1.8.21/dayjs.min.js"></script>
+</head>
+<body>
+    
+
+
+
+    <script>
+     
+     
+     dayjs().format('YYYY-MM-DD dddd HH:mm:ss.SSS A')
+     console.log('%c 🍓  dayjs().format(YYYY-MM-DD dddd HH:mm:ss.SSS A): ', 'font-size:20px;background-color: #93C0A4;color:#fff;',  dayjs().format('YYYY-MM-DD'));   // 当前时间
+
+     dayjs().valueOf()
+     console.log('%c 🍐   dayjs().valueOf(): ', 'font-size:20px;background-color: #3F7CFF;color:#fff;',   dayjs().valueOf());   // 当前时间戳
+
+
+     dayjs().add(3, 'day').format('YYYY-MM-DD')
+     console.log('%c 🍦  dayjs().add(3, day).format(YYYY-MM-DD): ', 'font-size:20px;background-color: #42b983;color:#fff;',  dayjs().add(3, 'day').format('YYYY-MM-DD'));   // 三天后时间
+    
+     dayjs().add(3, 'day').valueOf() // 未来时间戳
+     console.log('%c 🍍 dayjs().add(3, day).valueOf(): ', 'font-size:20px;background-color: #2EAFB0;color:#fff;', dayjs().add(3, 'day').valueOf());
+     
+
+
+     console.log(dayjs(1612876850042).format('YYYY-MM-DD'));   // 时间戳转换当前日期
+
+    //  console.log(dayjs('2018-06-03').isSame(dayjs('2018-06-06')));   // 这个时间是否和另一个时间相同     false
+
+    //  console.log(dayjs('2018-06-01').isAfter(dayjs('2018-06-02')));   // 这个时间是否在另一个时间的后面   false       
+
+    console.log(dayjs('2021-02-8').isBefore(dayjs('2021-02-09')));  // 这个时间是否在另一个时间的前面    true      
+
+    console.log(dayjs(dayjs('2021-02-12')-dayjs('2021-02-9')).date()-1);
+    </script>
+</body>
+</html>

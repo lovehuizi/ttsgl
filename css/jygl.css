@@ -1,0 +1,21 @@
+* {
+  margin: 0;
+  padding: 0;
+}
+div#app {
+  width: 320px;
+  height: 500px;
+  margin: 100px auto;
+}
+div#app h2 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+div#app div.cz {
+  margin-top: 10px;
+  margin-left: 20%;
+}
+div#app div.an {
+  margin-top: 20px;
+  margin-left: 25%;
+}

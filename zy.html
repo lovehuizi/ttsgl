@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://unpkg.com/vue/dist/vue.js"></script>
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    <script src="./js/jquery.js"></script>
+    <script src="./js/axios.js"></script>
+    <link rel="stylesheet" href="./css/zy.css">
+</head>
+<body>
+    <div id="app">
+        <p class="p1">
+            <span class="user"></span>
+        </p>
+        <p class="p2">
+            <span class="book_num"></span>
+        </p>
+        <p class="p3">
+            <span class="user_num"></span>
+        </p>
+        <p class="p5">
+            上次登录时间：
+        </p>
+        <p class="p6">
+        <span class="uptime"></span>
+        </p>
+    </div>
+
+
+    <script>
+        window.onload = function(){
+            var user = $('.user');
+            var book_num = $('.book_num');
+            var user_num = $('.user_num');
+            var uptime = $('.uptime');
+            var admin = sessionStorage.getItem('user');
+
+            user.html(`${admin}管理员, 你好！`);
+
+            var time = sessionStorage.getItem('uptime');
+            var newTime = new Date(Number(time));
+            uptime.html(newTime.toLocaleString());
+
+            var num = sessionStorage.getItem('num');
+            book_num.html(`当前共有${num}本图书`);
+            
+            var userNum = sessionStorage.getItem('userNum');
+            user_num.html(`当前共有${userNum}位读者`);
+
+        }
+
+    </script>
+</body>
+</html>

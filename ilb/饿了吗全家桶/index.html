@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <script src="https://unpkg.com/vue/dist/vue.js"></script>
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+</head>
+<body>
+    
+    <div id="app">
+      <template>
+        <el-button type="text" @click="open">交卷</el-button>
+      </template>
+
+      <el-input
+      placeholder="请输入内容"
+      v-model="input"
+      clearable>
+    </el-input>
+    </div>
+    </body>
+
+
+    
+    <script>
+        new Vue({
+            el:'#app',
+            data() {
+                return {
+                  input:''
+                }
+            },       
+            methods: {
+                open() {
+                    this.$confirm('确认交卷吗？', '提示', {
+                      confirmButtonText: '确定',
+                      cancelButtonText: '取消',
+                      type: 'warning'
+                    }).then(() => {
+                      this.$message({
+                        type: 'success',
+                        message: '交卷成功!'
+                      });
+                    }).catch(() => {
+                      this.$message({
+                        type: 'info',
+                        message: '已取消交卷！'
+                      });          
+                    });
+                  }
+                }
+        })
+    </script>
+
+    
+
+</html>

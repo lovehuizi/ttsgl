@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <script src="https://unpkg.com/vue/dist/vue.js"></script>
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    <script src="./js/jquery.js"></script>
+    <script src="./js/axios.js"></script>
+    <link rel="stylesheet" href="./css/yljl.css">
+    <script src="./js/echarts.js"></script>
+</head>
+
+<body>
+    <div id="app">
+        <!-- 为ECharts准备一个具备大小（宽高）的Dom -->
+        <div id="main" style="width: 600px;height:400px;"></div>
+        <script type="text/javascript">
+            var arr = [];
+            var num = 0;
+            var data = [{
+                    value: 1048, //  用户消费总金额
+                    name: '张三' //  用户名称
+                },
+                {
+                    value: 735,
+                    name: '李四'
+                },
+            ]
+            window.onload = function () {
+         
+
+                var url = 'http://localhost:88/tsxt/php/yljl.php';
+                axios.get(url).then(res => {
+                    for (var i = 0; i < res.length; i++) {
+                        num += Number(res[i].outprice);
+
+
+
+                    }
+
+                    // //  利用对象访问属性的方法，判断对象中是否存在key
+                    // for (var i = 0; i < res.length; i++) {
+                    //     if (!obj[res[i].user]) {
+                    //         newArr.push({name:res[i].user,value:res[i].outprice+=res[i].outprice});
+
+                    //         obj[res[i].user] = true;
+                    //     }
+                    // }
+
+                    var result = {};
+
+                    for (i = 0; i < res.length; i++) {
+                        if (result[res[i].user]) {
+                            result[res[i].user] += Number(res[i].outprice);
+                        } else {
+                            result[res[i].user] = Number(res[i].outprice);
+                        }
+                    }
+
+                    var data = [];
+                    for (var key in result) {
+                        data.push({
+                            name: key,
+                            value: result[key]
+                        })
+                    }
+                    console.log(data)
+
+
+
+                    // 基于准备好的dom，初始化echarts实例
+                    var myChart = echarts.init(document.getElementById('main'));
+
+                    var chartDom = document.getElementById('main');
+                    var myChart = echarts.init(chartDom);
+                    var option;
+                    var title = `图书盈利总收入${num}元`;
+
+                    option = {
+                        title: {
+                            text: title,
+                            subtext: '',
+                            left: 'center'
+                        },
+                        tooltip: {
+                            trigger: 'item'
+                        },
+                        legend: {
+                            orient: 'vertical',
+                            left: 'left',
+                        },
+                        series: [{
+                            name: '消费金额',
+                            type: 'pie',
+                            radius: '50%',
+                            data: data,
+
+
+                            emphasis: {
+                                itemStyle: {
+                                    shadowBlur: 10,
+                                    shadowOffsetX: 0,
+                                    shadowColor: 'rgba(0, 0, 0, 0.5)'
+                                }
+                            }
+                        }]
+                    };
+
+                    option && myChart.setOption(option);
+
+                })
+
+
+            }
+        </script>
+    </div>
+</body>
+
+</html>

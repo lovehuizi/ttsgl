@@ -1,0 +1,79 @@
+    <script>
+        if(!sessionStorage.getItem('user')){
+            window.location.href = './index.html';
+        }
+    </script>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <script src="https://unpkg.com/vue/dist/vue.js"></script>
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    <script src="./js/jquery.js"></script>
+    <script src="./js/axios.js"></script>
+    <link rel="stylesheet" href="./css/main.css">
+    <style>
+         .active{
+            font-size: 18px;
+            font-weight: bold;
+         }
+    </style>
+</head>
+<body>
+    
+    <div id="app">
+      <div id="header">
+          <div class="header_l">
+              <li> <span class="header_title">图书馆管理系统</span></li>
+              <li class="active">
+                <a  href="zy.html" target="iframe">主页</a>
+              </li>
+              <li>
+                <a href="tsgl.html" target="iframe">图书管理</a>
+              </li>
+              <li>
+                <a href="yhgl.html" target="iframe">用户管理</a>
+              </li>
+              <li>
+                <a href="jygl.html" target="iframe">借阅管理</a>
+              </li> 
+              <li>
+                <a href="yljl.html" target="iframe">盈利报表</a>
+              </li> 
+          </div>
+          <div class="header_r">
+              <span class="user"></span>
+              <a href="javascript:;" class="exit">退出</a>
+          </div>
+      </div>
+      <div id="content">
+        <iframe frameborder="0" class="iframe" src="./zy.html" name="iframe"></iframe>
+      </div>
+    </div>
+
+
+  <script>
+         $(' .header_l li ').click(function() {
+            $(this).addClass('active').siblings().removeClass('active')
+        })
+
+        window.onload = function(){
+          var user = $('.user');
+          var admin = sessionStorage.getItem('user');
+          user.html(admin);
+        }
+
+        var exit = document.querySelector('.exit');
+        exit.onclick = function(){
+          sessionStorage.clear();
+          setTimeout(()=>{
+            window.location.href = './index.html';
+          },1000)
+        }
+  </script>
+
+</body>
+</html>
